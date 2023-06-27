@@ -7,6 +7,7 @@ Author
 
 import sys
 import torch
+import torchaudio
 import logging
 import speechbrain as sb
 from speechbrain.tokenizers.SentencePiece import SentencePiece
@@ -23,7 +24,6 @@ class ST(sb.core.Brain):
         batch = batch.to(self.device)
         wavs, wav_lens = batch.sig  # audio
         tokens_bos, _ = batch.tokens_bos  # translation
-
         # wav2vec module
         feats = self.modules.wav2vec2(wavs)
 
@@ -31,13 +31,8 @@ class ST(sb.core.Brain):
         src = self.modules.enc(feats)
 
         # transformer decoder
-        if self.distributed_launch:
-            dec_out = self.modules.Transformer.module.forward_mt_decoder_only(
-                src, tokens_bos, pad_idx=self.hparams.pad_index
-            )
-        else:
-            dec_out = self.modules.Transformer.forward_mt_decoder_only(
-                src, tokens_bos, pad_idx=self.hparams.pad_index
+        dec_out = self.modules.Transformer(
+                src, tokens_bos,wav_lens, pad_idx=self.hparams.pad_index
             )
 
         # logits and softmax
@@ -72,6 +67,9 @@ class ST(sb.core.Brain):
                 )
                 for utt_seq in hyps
             ]
+            sentences = [tokenizer.sp.decode_ids(utt_seq).split(" ") for utt_seq in hyps]
+            #print(sentences[0])
+            #print(batch.trans[0])
 
             detokenized_translation = [
                 fr_detokenizer.detokenize(translation.split(" "))
@@ -202,18 +200,24 @@ def dataio_prepare(hparams):
     @sb.utils.data_pipeline.provides("sig")
     def audio_pipeline(wav):
         """Load the audio signal. This is done on the CPU in the `collate_fn`."""
+        info = torchaudio.info(wav)
         sig = sb.dataio.dataio.read_audio(wav)
-        return sig
+        resampled = torchaudio.transforms.Resample(
+            info.sample_rate, hparams["sample_rate"],
+        )(sig)
+
+        return resampled
 
     @sb.utils.data_pipeline.takes("path")
     @sb.utils.data_pipeline.provides("sig")
-    def sp_audio_pipeline(wav):
-        """Load the audio signal. This is done on the CPU in the `collate_fn`."""
-        sig = sb.dataio.dataio.read_audio(wav)
-        sig = sig.unsqueeze(0)
-        sig = hparams["speed_perturb"](sig)
-        sig = sig.squeeze(0)
-        return sig
+    def sp_audio_pipeline(path):
+        info = torchaudio.info(path)
+        sig = sb.dataio.dataio.read_audio(path)
+        resampled = torchaudio.transforms.Resample(
+            info.sample_rate, hparams["sample_rate"],
+        )(sig)
+        return resampled
+
 
     # Define text processing pipeline. We start from the raw text and then
     # encode it using the tokenizer. The tokens with BOS are used for feeding
@@ -233,7 +237,7 @@ def dataio_prepare(hparams):
         yield tokens_eos
 
     data_folder = hparams["data_folder"]
-
+    print(data_folder)
     # 1. train tokenizer on the data
     tokenizer = SentencePiece(
         model_dir=hparams["save_folder"],
@@ -392,7 +396,7 @@ if __name__ == "__main__":
 
     # Data preparation
     import prepare_iwslt22
-
+    """
     run_on_main(
         prepare_iwslt22.data_proc,
         kwargs={
@@ -400,14 +404,13 @@ if __name__ == "__main__":
             "output_folder": hparams["data_folder"],
         },
     )
+    """
     # Load datasets for training, valid, and test, trains and applies tokenizer
     datasets, tokenizer = dataio_prepare(hparams)
+    for i  in range(110): 
+        print(tokenizer.sp.decode_ids([i]))
 
     # Before training, we drop some of the wav2vec 2.0 Transformer Encoder layers
-    st_brain.modules.wav2vec2.model.encoder.layers = st_brain.modules.wav2vec2.model.encoder.layers[
-        : hparams["keep_n_layers"]
-    ]
-
     # Training
     st_brain.fit(
         st_brain.hparams.epoch_counter,

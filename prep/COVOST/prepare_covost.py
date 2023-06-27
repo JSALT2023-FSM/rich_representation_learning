@@ -61,6 +61,7 @@ def generate_jsons(table_path, folder_path):
             output_json[utt_id] = dict()
             output_json[utt_id]["path"] = audio_path
             output_json[utt_id]["trans"] = row["translation"]
+            output_json[utt_id]["sentence"] = row["sentence"]
             output_json[utt_id]["duration"] = duration
         except : 
             continue
@@ -93,9 +94,9 @@ if __name__=="__main__" :
     
     table_fold = "/gpfsscratch/rech/nou/uzn19yk/covost2/splits/"
     tables = ["covost_v2.en_de.dev.tsv", "covost_v2.en_de.test.tsv", "covost_v2.en_de.train.tsv"]
-    tables = [ "covost_v2.en_de.train.tsv"]
+    #tables = [ "covost_v2.en_de.train.tsv"]
     out_names = ["dev", "test", "train"]
-    out_names = ["train"]
+    #out_names = ["train"]
     folder_path = "/gpfsscratch/rech/nou/uzn19yk/covost2/good_clips/"
     output_folder ="/gpfsstore/rech/nou/uzn19yk/JSALT/data/covostde-en-jsons/"
     for ind, table in enumerate(tables) : 

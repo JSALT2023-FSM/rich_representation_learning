@@ -36,7 +36,7 @@ compute_cost: !name:speechbrain.nnet.losses.nll_loss
 wav2vec2_hub: /gpfsstore/rech/nou/uzn19yk/data2vec-audio-large/
 
 # Training parameters
-number_of_epochs: 5
+number_of_epochs: 10
 batch_size: 2
 lr: 0.0002
 lr_wav2vec2: 0.00001
@@ -172,6 +172,7 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     checkpoints_dir: !ref <save_folder>
     recoverables:
         model: !ref <model>
+        wav2vec2: !ref <wav2vec2>
         scheduler: !ref <lr_annealing>
         lr_annealing_wav2vec2: !ref <lr_annealing_wav2vec2>
         counter: !ref <epoch_counter>
