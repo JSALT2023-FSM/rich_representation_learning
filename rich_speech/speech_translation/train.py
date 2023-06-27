@@ -31,12 +31,12 @@ class ST(sb.core.Brain):
         src = self.modules.enc(feats)
 
         # transformer decoder
-        dec_out = self.modules.Transformer(
+        dec_out, pred = self.modules.Transformer(
                 src, tokens_bos,wav_lens, pad_idx=self.hparams.pad_index
             )
 
         # logits and softmax
-        pred = self.modules.seq_lin(dec_out)
+        pred = self.modules.seq_lin(pred)
         p_seq = self.hparams.log_softmax(pred)
 
         # compute outputs
