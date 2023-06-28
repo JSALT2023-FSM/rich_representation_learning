@@ -196,29 +196,43 @@ def dataio_prepare(hparams):
 
     # Define audio pipeline. In this case, we simply read the path contained
     # in the variable wav with the audio reader.
-    @sb.utils.data_pipeline.takes("path")
+    @sb.utils.data_pipeline.takes("path", "start", "duration")
     @sb.utils.data_pipeline.provides("sig")
-    def audio_pipeline(wav):
+    def audio_pipeline(wav, start, duration):
         """Load the audio signal. This is done on the CPU in the `collate_fn`."""
-        info = torchaudio.info(wav)
+        sr = torchaudio.info(wav).sample_rate
+        start = int(start * sr)
+        stop = start + int(duration * sr)
+        wav = {
+            "file": wav,
+            "start": start,
+            "stop": stop,
+        }
         sig = sb.dataio.dataio.read_audio(wav)
         resampled = torchaudio.transforms.Resample(
-            info.sample_rate, hparams["sample_rate"],
+            sr, hparams["sample_rate"],
         )(sig)
 
         return resampled
 
-    @sb.utils.data_pipeline.takes("path")
+    @sb.utils.data_pipeline.takes("path", "start", "duration")
     @sb.utils.data_pipeline.provides("sig")
-    def sp_audio_pipeline(path):
-        info = torchaudio.info(path)
-        sig = sb.dataio.dataio.read_audio(path)
+    def sp_audio_pipeline(wav, start, duration):
+        """Load the audio signal. This is done on the CPU in the `collate_fn`."""
+        sr = torchaudio.info(wav).sample_rate
+        start = int(start * sr)
+        stop = start + int(duration * sr)
+        wav = {
+            "file": wav,
+            "start": start,
+            "stop": stop,
+        }
+        sig = sb.dataio.dataio.read_audio(wav)
         resampled = torchaudio.transforms.Resample(
-            info.sample_rate, hparams["sample_rate"],
+            sr, hparams["sample_rate"],
         )(sig)
+
         return resampled
-
-
     # Define text processing pipeline. We start from the raw text and then
     # encode it using the tokenizer. The tokens with BOS are used for feeding
     # decoder during training, the tokens with EOS for computing the cost function.
