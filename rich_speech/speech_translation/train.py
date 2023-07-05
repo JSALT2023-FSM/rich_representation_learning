@@ -408,7 +408,7 @@ if __name__ == "__main__":
     # Load datasets for training, valid, and test, trains and applies tokenizer
     datasets, tokenizer = dataio_prepare(hparams)
     for i  in range(110): 
-        print(tokenizer.sp.decode_ids([i]))
+        print(tokenizer.decode_ids([i]))
 
     # Before training, we drop some of the wav2vec 2.0 Transformer Encoder layers
     # Training

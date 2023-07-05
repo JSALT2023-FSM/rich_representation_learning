@@ -55,7 +55,7 @@ test_dataloader_options:
     batch_size: !ref <test_batch_size>
     num_workers: 4
 
-embedding_size: 256
+embedding_size: 512
 # Feature parameters (W2V2 etc)
 features_dim: 1024 #base wav2vec output dimension, for large replace by 1024
 output_emb: !new:speechbrain.nnet.embedding.Embedding
@@ -68,7 +68,7 @@ enc_dnn_layers: 1
 enc_dnn_neurons: 256
 
 # Transformer
-d_model: 256
+d_model: 512
 nhead: 4
 num_decoder_layers: 3
 d_ffn: 1024
@@ -104,7 +104,7 @@ enc: !new:speechbrain.lobes.models.VanillaNN.VanillaNN
 Transformer: !new:speechbrain.lobes.models.transformer.TransformerST.TransformerST # yamllint disable-line rule:line-length
     input_size: !ref <embedding_size>
     tgt_vocab: !ref <output_neurons>
-    num_encoder_layers: 3
+    num_encoder_layers: 5
     num_decoder_layers: !ref <num_decoder_layers>
     nhead: !ref <nhead>
     d_model: !ref <d_model>

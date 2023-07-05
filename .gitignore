@@ -1,2 +1,3 @@
 results/
 rich_speech/intent_classification/pretrained_models/
+rich_speech/intent_classification/model_checkpoints/

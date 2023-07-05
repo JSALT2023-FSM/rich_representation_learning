@@ -51,7 +51,6 @@ class ST(sb.core.Brain):
         loss = self.hparams.seq_cost(p_seq, tokens_eos, length=tokens_eos_lens)
 
         fr_detokenizer = MosesDetokenizer(lang=self.hparams.lang)
-
         if stage != sb.Stage.TRAIN:
             predictions = [
                 fr_detokenizer.detokenize(
@@ -397,7 +396,7 @@ if __name__ == "__main__":
     # Load datasets for training, valid, and test, trains and applies tokenizer
     datasets, tokenizer, tokenizer_input = dataio_prepare(hparams)
     for i  in range(110): 
-        print(tokenizer.sp.decode_ids([i]))
+        print(tokenizer_input.sp.decode_ids([i]))
 
     # Before training, we drop some of the wav2vec 2.0 Transformer Encoder layers
     # Training

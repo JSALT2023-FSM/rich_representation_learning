@@ -330,8 +330,11 @@ if __name__ == "__main__":
         checkpointer=hparams["checkpointer"],
     )
 
-    emo_id_brain.asr_model  = EncoderDecoderASR.from_hparams(source="/gpfsstore/rech/nou/uzn19yk/JSALT/rich_speech/pretrained_conformer/asr-conformer-transformerlm-librispeech/", savedir="/gpfsstore/rech/nou/uzn19yk/JSALT/results/pretrained_models/asr-transformer-transformerlm-librispeech")
+    emo_id_brain.asr_model  = EncoderDecoderASR.from_hparams(source="/gpfsstore/rech/nou/uzn19yk/JSALT/rich_speech/pretrained_conformer/asr-conformer-transformerlm-librispeech/", savedir="pretrained_models/asr-transformer-transformerlm-librispeech")
     emo_id_brain.asr_model.to(emo_id_brain.device)
+    for p in emo_id_brain.asr_model.mods.encoder.parameters():
+        p.requires_grad = True
+
     # The `fit()` method iterates the training loop, calling the methods
     # necessary to update the parameters of the model. Since all objects
     # with changing state are managed by the Checkpointer, training can be
